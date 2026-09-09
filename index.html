@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harmonic Series Calculator</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#17181A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Overtones">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #17181A;
+    --panel: #1F2123;
+    --panel-raised: #26282B;
+    --line: #35373A;
+    --text: #ECE9E2;
+    --text-dim: #92948F;
+    --amber: #E8A33D;
+    --teal: #5FADA4;
+    --font: 'Space Grotesk', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    padding: 32px 16px 64px;
+  }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .sub {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin: 0 0 28px;
+    line-height: 1.5;
+    max-width: 46ch;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .mode-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    background: var(--panel-raised);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 9px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .mode-btn.active {
+    color: var(--bg);
+    background: var(--amber);
+    border-color: var(--amber);
+    font-weight: 600;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  input[type="text"], input[type="number"], select {
+    background: var(--panel-raised);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 12px 14px;
+    border-radius: 7px;
+    width: 100%;
+    font-variant-numeric: tabular-nums;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--amber);
+  }
+
+  input::placeholder { color: var(--text-dim); font-weight: 400; }
+
+  .field { flex: 1; }
+  .field label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .a4-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+  .a4-row input {
+    width: 80px;
+    font-size: 0.85rem;
+    padding: 6px 8px;
+    font-weight: 500;
+  }
+
+  .root-display {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 4px 4px 2px;
+  }
+
+  .root-display .note {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--amber);
+    letter-spacing: -0.01em;
+  }
+
+  .root-display .freq {
+    font-size: 1rem;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .root-display .cents {
+    font-size: 0.85rem;
+    color: var(--teal);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .error {
+    color: #D9695A;
+    font-size: 0.85rem;
+    margin-top: 10px;
+  }
+
+  .table-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 20px;
+  }
+
+  .table-grid table + table {
+    border-left: 1px solid var(--line);
+    padding-left: 20px;
+  }
+
+  @media (max-width: 640px) {
+    .table-grid {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .table-grid table + table {
+      border-left: none;
+      padding-left: 0;
+      margin-top: 4px;
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    text-align: left;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    font-weight: 500;
+    padding: 0 10px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  thead th.num { text-align: right; }
+
+  tbody td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  .n-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--panel-raised);
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  tr.root-row td { background: rgba(232, 163, 61, 0.08); }
+  tr.root-row .n-badge { background: var(--amber); color: var(--bg); }
+  tr.sub-row .n-badge { background: var(--panel-raised); color: var(--teal); }
+
+  .bar-cell {
+    width: 40%;
+    min-width: 90px;
+  }
+
+  .bar-track {
+    height: 6px;
+    background: var(--panel-raised);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal), var(--amber));
+    border-radius: 3px;
+  }
+
+  .freq-cell {
+    text-align: right;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .note-cell {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .note-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .cent-offset {
+    font-size: 0.78rem;
+    margin-left: 6px;
+  }
+
+  .cent-offset.flat { color: #D9695A; }
+  .cent-offset.sharp { color: var(--teal); }
+  .cent-offset.zero { color: var(--text-dim); }
+
+  .section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 8px 0 4px;
+  }
+
+  .calib-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .calib-status {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: var(--panel-raised);
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .calib-status.done { background: rgba(95,173,164,0.2); color: var(--teal); }
+  .calib-status.partial { background: rgba(232,163,61,0.15); color: var(--amber); }
+
+  .calib-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .calib-row:last-child { border-bottom: none; }
+
+  .calib-note {
+    min-width: 92px;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .calib-freq {
+    color: var(--text-dim);
+    font-weight: 400;
+    font-size: 0.78rem;
+    margin-left: 4px;
+  }
+
+  .mini-btn {
+    background: var(--panel-raised);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .mini-btn.active { background: var(--amber); border-color: var(--amber); color: var(--bg); font-weight: 600; }
+  .mini-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .step-result {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    flex: 1 1 100%;
+  }
+  .step-result.ok { color: var(--teal); }
+  .step-result.warn { color: #D9695A; }
+
+  .calib-actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .listen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .listen-btn { flex: none; padding: 10px 18px; }
+
+  .display-toggle { display: flex; gap: 6px; }
+
+  #spectrumCanvas {
+    width: 100%;
+    height: 260px;
+    display: block;
+    background: var(--panel-raised);
+    border-radius: 8px;
+    touch-action: none;
+    cursor: crosshair;
+  }
+
+  @media (max-width: 480px) {
+    .bar-cell { display: none; }
+    thead th.bar-head { display: none; }
+    .root-display .note { font-size: 1.9rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Harmonic Series &amp; Room Listener</h1>
+  <p class="sub">Touch or drag anywhere on the histogram below to pick a frequency — it'll highlight that line, show its subtones and overtones as guide lines, and fill in the calculator underneath.</p>
+
+  <h2 class="section-title">Room Noise Listener</h2>
+  <p class="sub">Calibrate against a few real piano notes to flatten out your mic and speaker's own coloration, then listen live to spot resonant frequencies worth notching. Echo cancellation, noise suppression, and auto-gain are turned off so readings reflect the room, not the browser's cleanup.</p>
+
+  <div class="panel">
+    <div class="listen-header">
+      <button class="mode-btn listen-btn" id="btnListen">Start listening</button>
+      <div class="display-toggle">
+        <button class="mini-btn active" id="btnBarMode">Bars</button>
+        <button class="mini-btn" id="btnLineMode">Line</button>
+      </div>
+    </div>
+    <canvas id="spectrumCanvas" width="800" height="260"></canvas>
+  </div>
+
+  <div class="panel">
+    <div class="calib-header">
+      <span>Calibration — play each note on a real piano when you click Capture</span>
+      <span class="calib-status" id="calibStatus">Not calibrated</span>
+    </div>
+    <div id="calibSteps"></div>
+    <div class="calib-actions">
+      <button class="mini-btn" id="btnResetCalib">Reset calibration</button>
+    </div>
+    <div id="micError" class="error" style="display:none;"></div>
+  </div>
+
+  <h2 class="section-title">Harmonic Series Calculator</h2>
+  <p class="sub">Enter a root note or frequency to see 2 subtones below it, the root itself, and its first 12 overtones — each with exact frequency, nearest equal-tempered note, and cent offset.</p>
+
+  <div class="panel">
+    <div class="mode-row">
+      <button class="mode-btn active" id="btnNote">By note</button>
+      <button class="mode-btn" id="btnFreq">By frequency</button>
+    </div>
+
+    <div id="noteInputs" class="input-row">
+      <div class="field">
+        <label for="noteInput">Note (e.g. A4, C#3, Eb5)</label>
+        <input type="text" id="noteInput" value="A4" placeholder="A4">
+      </div>
+    </div>
+
+    <div id="freqInputs" class="input-row" style="display:none;">
+      <div class="field">
+        <label for="freqInput">Frequency (Hz)</label>
+        <input type="number" id="freqInput" value="440" step="0.01" placeholder="440">
+      </div>
+    </div>
+
+    <div class="a4-row">
+      Reference pitch A4 = <input type="number" id="a4Input" value="440" step="0.1"> Hz
+    </div>
+
+    <div id="errorMsg" class="error" style="display:none;"></div>
+  </div>
+
+  <div class="panel">
+    <div class="root-display">
+      <span class="note" id="rootNoteOut">A4</span>
+      <span class="freq" id="rootFreqOut">440.00 Hz</span>
+      <span class="cents" id="rootCentsOut"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="table-grid">
+      <table>
+        <thead>
+          <tr>
+            <th>Partial</th>
+            <th class="bar-head">Relative level</th>
+            <th class="num">Frequency</th>
+            <th class="num">Nearest note</th>
+          </tr>
+        </thead>
+        <tbody id="overtoneBodyA"></tbody>
+      </table>
+      <table>
+        <thead>
+          <tr>
+            <th>Partial</th>
+            <th class="bar-head">Relative level</th>
+            <th class="num">Frequency</th>
+            <th class="num">Nearest note</th>
+          </tr>
+        </thead>
+        <tbody id="overtoneBodyB"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+function getA4() {
+  const v = parseFloat(document.getElementById('a4Input').value);
+  return (isFinite(v) && v > 0) ? v : 440;
+}
+
+// Parse a note string like "A4", "C#3", "Eb5", "Bb-1" into a frequency
+function noteToFreq(str, a4) {
+  const m = str.trim().match(/^([A-Ga-g])([#b]?)(-?\d+)$/);
+  if (!m) return null;
+  let [, letter, accidental, octaveStr] = m;
+  letter = letter.toUpperCase();
+  const octave = parseInt(octaveStr, 10);
+
+  const naturalIndex = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 }[letter];
+  let semitone = naturalIndex;
+  if (accidental === '#') semitone += 1;
+  if (accidental === 'b') semitone -= 1;
+
+  // MIDI-style numbering: A4 = midi 69, C4 = midi 60
+  const midi = (octave + 1) * 12 + semitone;
+  const a4Midi = 69;
+  return a4 * Math.pow(2, (midi - a4Midi) / 12);
+}
+
+// Convert frequency to nearest note name + octave + cents offset
+function freqToNote(freq, a4) {
+  const a4Midi = 69;
+  const midiExact = a4Midi + 12 * Math.log2(freq / a4);
+  const midiRounded = Math.round(midiExact);
+  const cents = Math.round((midiExact - midiRounded) * 100);
+
+  const noteIndex = ((midiRounded % 12) + 12) % 12;
+  const octave = Math.floor(midiRounded / 12) - 1;
+  const name = NOTE_NAMES[noteIndex] + octave;
+
+  return { name, cents };
+}
+
+function formatCents(cents) {
+  if (cents === 0) return { text: '±0¢', cls: 'zero' };
+  const sign = cents > 0 ? '+' : '−';
+  return { text: `${sign}${Math.abs(cents)}¢`, cls: cents > 0 ? 'sharp' : 'flat' };
+}
+
+function render() {
+  const a4 = getA4();
+  const errorEl = document.getElementById('errorMsg');
+  errorEl.style.display = 'none';
+
+  const mode = document.getElementById('btnNote').classList.contains('active') ? 'note' : 'freq';
+  let rootFreq;
+
+  if (mode === 'note') {
+    const raw = document.getElementById('noteInput').value;
+    rootFreq = noteToFreq(raw, a4);
+    if (rootFreq === null) {
+      errorEl.textContent = 'Enter a note like A4, C#3, or Eb5 (letter A–G, optional # or b, then octave number).';
+      errorEl.style.display = 'block';
+      document.getElementById('overtoneBodyA').innerHTML = '';
+      document.getElementById('overtoneBodyB').innerHTML = '';
+      document.getElementById('rootNoteOut').textContent = '—';
+      document.getElementById('rootFreqOut').textContent = '';
+      document.getElementById('rootCentsOut').textContent = '';
+      return;
+    }
+  } else {
+    const raw = parseFloat(document.getElementById('freqInput').value);
+    if (!isFinite(raw) || raw <= 0) {
+      errorEl.textContent = 'Enter a frequency greater than 0 Hz.';
+      errorEl.style.display = 'block';
+      document.getElementById('overtoneBodyA').innerHTML = '';
+      document.getElementById('overtoneBodyB').innerHTML = '';
+      document.getElementById('rootNoteOut').textContent = '—';
+      document.getElementById('rootFreqOut').textContent = '';
+      document.getElementById('rootCentsOut').textContent = '';
+      return;
+    }
+    rootFreq = raw;
+  }
+
+  const rootNote = freqToNote(rootFreq, a4);
+  document.getElementById('rootNoteOut').textContent = rootNote.name;
+  document.getElementById('rootFreqOut').textContent = rootFreq.toFixed(2) + ' Hz';
+  const rc = formatCents(rootNote.cents);
+  document.getElementById('rootCentsOut').textContent = mode === 'freq' ? `(${rc.text} from ${rootNote.name})` : '';
+
+  const tbodyA = document.getElementById('overtoneBodyA');
+  const tbodyB = document.getElementById('overtoneBodyB');
+  tbodyA.innerHTML = '';
+  tbodyB.innerHTML = '';
+
+  // Build the full series: 2 subtones (undertones, root/2 and root/3),
+  // the root itself, then 12 overtones (harmonics 2 through 13).
+  const rows = [
+    { ratio: 1 / 3, label: 'Sub 2', cls: 'sub-row' },
+    { ratio: 1 / 2, label: 'Sub 1', cls: 'sub-row' },
+    { ratio: 1,     label: 'Root',  cls: 'root-row' },
+  ];
+  const maxHarmonic = 13; // 12 overtones: harmonics 2 through 13
+  for (let n = 2; n <= maxHarmonic; n++) {
+    rows.push({ ratio: n, label: 'OT ' + (n - 1), cls: '' });
+  }
+
+  // Scale bars relative to the top of the range shown
+  const maxFreqForBar = rootFreq * maxHarmonic;
+
+  // Split rows evenly between the two columns (left gets the extra row if odd)
+  const splitAt = Math.ceil(rows.length / 2);
+
+  rows.forEach((row, i) => {
+    const freq = rootFreq * row.ratio;
+    const note = freqToNote(freq, a4);
+    const cents = formatCents(note.cents);
+    const barPct = Math.max(4, Math.min(100, (freq / maxFreqForBar) * 100));
+
+    const tr = document.createElement('tr');
+    if (row.cls) tr.className = row.cls;
+    tr.innerHTML = `
+      <td><span class="n-badge">${row.label}</span></td>
+      <td class="bar-cell">
+        <div class="bar-track"><div class="bar-fill" style="width:${barPct}%"></div></div>
+      </td>
+      <td class="freq-cell">${freq.toFixed(2)} Hz</td>
+      <td class="note-cell">
+        <span class="note-name">${note.name}</span><span class="cent-offset ${cents.cls}">${cents.text}</span>
+      </td>
+    `;
+    (i < splitAt ? tbodyA : tbodyB).appendChild(tr);
+  });
+}
+
+document.getElementById('btnNote').addEventListener('click', () => {
+  document.getElementById('btnNote').classList.add('active');
+  document.getElementById('btnFreq').classList.remove('active');
+  document.getElementById('noteInputs').style.display = 'flex';
+  document.getElementById('freqInputs').style.display = 'none';
+  render();
+});
+
+document.getElementById('btnFreq').addEventListener('click', () => {
+  document.getElementById('btnFreq').classList.add('active');
+  document.getElementById('btnNote').classList.remove('active');
+  document.getElementById('freqInputs').style.display = 'flex';
+  document.getElementById('noteInputs').style.display = 'none';
+  render();
+});
+
+['noteInput', 'freqInput', 'a4Input'].forEach(id => {
+  document.getElementById(id).addEventListener('input', render);
+});
+
+render();
+
+// ---------------------------------------------------------------
+// Room Noise Listener: calibration + live spectrum
+// ---------------------------------------------------------------
+
+const CANVAS_W = 800, CANVAS_H = 260;
+const MIN_FREQ = 55;      // A1
+const MAX_FREQ = 8000;    // upper edge of the display, extrapolated flat past the last calibration point
+const NUM_BUCKETS = 110;
+const DISPLAY_MIN_DB = -100;
+const DISPLAY_MAX_DB = -20;
+const DECAY_DB_PER_SEC = (DISPLAY_MAX_DB - DISPLAY_MIN_DB) / 5; // peak bars fall back down over ~5s
+const UPDATE_INTERVAL_MS = 300; // ~3.3 updates/sec (within the requested 2-4/sec range)
+const MIN_CAPTURE_DB = -75; // below this, treat a calibration capture as "no signal"
+const CALIB_NOTES = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6'];
+
+let audioCtx = null, analyser = null, micStream = null, micSourceNode = null;
+let calibPoints = [];       // sparse array indexed by CALIB_NOTES index: { freq, db }
+let calibDone = false;
+let isListening = false;
+let displayMode = 'bar';
+let liveDb = new Float32Array(NUM_BUCKETS).fill(DISPLAY_MIN_DB);
+let peakDb = new Float32Array(NUM_BUCKETS).fill(DISPLAY_MIN_DB);
+let bucketBinRanges = null;
+let bucketCenterFreq = null;
+let lastFrameTs = null;
+let rafId = null;
+
+async function ensureMic() {
+  if (micStream) return true;
+  const micError = document.getElementById('micError');
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 }
+    });
+  } catch (err) {
+    micError.style.display = 'block';
+    micError.textContent = 'Microphone access failed: ' + err.message +
+      '. If you opened this file directly (file://), try serving it from a local server ' +
+      '(e.g. run "python3 -m http.server" in this folder) and open it via http://localhost instead.';
+    return false;
+  }
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  micSourceNode = audioCtx.createMediaStreamSource(micStream);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 16384;
+  analyser.smoothingTimeConstant = 0.2;
+  analyser.minDecibels = DISPLAY_MIN_DB - 10;
+  analyser.maxDecibels = 0;
+  micSourceNode.connect(analyser);
+  computeBucketBins();
+  micError.style.display = 'none';
+  return true;
+}
+
+function computeBucketBins() {
+  const binWidth = audioCtx.sampleRate / analyser.fftSize;
+  const totalBins = analyser.frequencyBinCount;
+  bucketBinRanges = [];
+  bucketCenterFreq = [];
+  for (let i = 0; i < NUM_BUCKETS; i++) {
+    const f0 = MIN_FREQ * Math.pow(MAX_FREQ / MIN_FREQ, i / NUM_BUCKETS);
+    const f1 = MIN_FREQ * Math.pow(MAX_FREQ / MIN_FREQ, (i + 1) / NUM_BUCKETS);
+    let lo = Math.max(0, Math.round(f0 / binWidth));
+    let hi = Math.min(totalBins - 1, Math.round(f1 / binWidth));
+    if (hi < lo) hi = lo;
+    bucketBinRanges.push([lo, hi]);
+    bucketCenterFreq.push(MIN_FREQ * Math.pow(MAX_FREQ / MIN_FREQ, (i + 0.5) / NUM_BUCKETS));
+  }
+}
+
+// Piecewise-linear interpolation (in log-frequency) of captured calibration levels
+function measuredCurve(points, freq) {
+  const sorted = [...points].sort((a, b) => a.freq - b.freq);
+  const lf = Math.log(freq);
+  if (lf <= Math.log(sorted[0].freq)) return sorted[0].db;
+  if (lf >= Math.log(sorted[sorted.length - 1].freq)) return sorted[sorted.length - 1].db;
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const l0 = Math.log(sorted[i].freq), l1 = Math.log(sorted[i + 1].freq);
+    if (lf >= l0 && lf <= l1) {
+      const t = (lf - l0) / (l1 - l0);
+      return sorted[i].db + t * (sorted[i + 1].db - sorted[i].db);
+    }
+  }
+  return sorted[sorted.length - 1].db;
+}
+
+function calibOffset(freq) {
+  const points = calibPoints.filter(Boolean);
+  if (points.length === 0) return 0;
+  const refDb = points.reduce((s, p) => s + p.db, 0) / points.length;
+  return refDb - measuredCurve(points, freq);
+}
+
+function renderCalibSteps() {
+  const container = document.getElementById('calibSteps');
+  container.innerHTML = '';
+  CALIB_NOTES.forEach((note, idx) => {
+    const freq = noteToFreq(note, getA4());
+    const captured = calibPoints[idx];
+    const row = document.createElement('div');
+    row.className = 'calib-row';
+    row.innerHTML = `
+      <div class="calib-note">${note}<span class="calib-freq">${freq.toFixed(1)} Hz</span></div>
+      <button class="mini-btn capture-btn" data-index="${idx}">${captured ? 'Redo' : 'Capture'}</button>
+      <div class="step-result ${captured ? 'ok' : ''}">${captured ? `Captured ${captured.freq.toFixed(1)} Hz at ${captured.db.toFixed(1)} dB ✓` : ''}</div>
+    `;
+    container.appendChild(row);
+  });
+  container.querySelectorAll('.capture-btn').forEach(btn => {
+    btn.addEventListener('click', () => captureCalibrationStep(parseInt(btn.dataset.index, 10)));
+  });
+
+  const doneCount = calibPoints.filter(Boolean).length;
+  calibDone = doneCount === CALIB_NOTES.length;
+  const statusEl = document.getElementById('calibStatus');
+  if (calibDone) {
+    statusEl.textContent = 'Calibrated';
+    statusEl.className = 'calib-status done';
+  } else if (doneCount > 0) {
+    statusEl.textContent = `${doneCount}/${CALIB_NOTES.length} captured`;
+    statusEl.className = 'calib-status partial';
+  } else {
+    statusEl.textContent = 'Not calibrated';
+    statusEl.className = 'calib-status';
+  }
+}
+
+async function captureCalibrationStep(index) {
+  const ok = await ensureMic();
+  if (!ok) return;
+
+  const note = CALIB_NOTES[index];
+  const targetFreq = noteToFreq(note, getA4());
+  const btn = document.querySelector(`.capture-btn[data-index="${index}"]`);
+  const resultEl = btn.closest('.calib-row').querySelector('.step-result');
+  btn.disabled = true;
+  btn.textContent = 'Listening…';
+  resultEl.textContent = 'Play and hold ' + note + ' now…';
+  resultEl.className = 'step-result';
+
+  const binWidth = audioCtx.sampleRate / analyser.fftSize;
+  const toleranceRatio = Math.pow(2, 150 / 1200); // +/-150 cents, to allow for a detuned piano
+  const loBin = Math.max(1, Math.floor((targetFreq / toleranceRatio) / binWidth));
+  const hiBin = Math.min(analyser.frequencyBinCount - 2, Math.ceil((targetFreq * toleranceRatio) / binWidth));
+  const freqData = new Float32Array(analyser.frequencyBinCount);
+
+  let bestDb = -Infinity, bestBin = loBin;
+  const durationMs = 900;
+  const startTs = performance.now();
+
+  function sample() {
+    analyser.getFloatFrequencyData(freqData);
+    for (let b = loBin; b <= hiBin; b++) {
+      if (freqData[b] > bestDb) { bestDb = freqData[b]; bestBin = b; }
+    }
+    if (performance.now() - startTs < durationMs) {
+      requestAnimationFrame(sample);
+    } else {
+      finish();
+    }
+  }
+
+  function finish() {
+    btn.disabled = false;
+    btn.textContent = calibPoints[index] ? 'Redo' : 'Capture';
+
+    if (bestDb < MIN_CAPTURE_DB) {
+      resultEl.textContent = `No clear signal near ${targetFreq.toFixed(1)} Hz — play ${note} a bit louder and try again.`;
+      resultEl.className = 'step-result warn';
+      return;
+    }
+
+    // Parabolic interpolation across neighboring bins for a sub-bin frequency estimate
+    const dm1 = freqData[bestBin - 1], d0 = freqData[bestBin], dp1 = freqData[bestBin + 1];
+    let p = 0;
+    const denom = (dm1 - 2 * d0 + dp1);
+    if (denom !== 0) p = 0.5 * (dm1 - dp1) / denom;
+    const refinedFreq = (bestBin + p) * binWidth;
+
+    calibPoints[index] = { freq: refinedFreq, db: bestDb };
+    renderCalibSteps();
+  }
+
+  requestAnimationFrame(sample);
+}
+
+document.getElementById('btnResetCalib').addEventListener('click', () => {
+  calibPoints = [];
+  calibDone = false;
+  renderCalibSteps();
+});
+
+const PARTIAL_RATIOS = [1/3, 1/2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+let selectedFreq = null;
+let isDraggingSpectrum = false;
+
+function freqToX(freq) {
+  return (Math.log(freq) - Math.log(MIN_FREQ)) / (Math.log(MAX_FREQ) - Math.log(MIN_FREQ)) * CANVAS_W;
+}
+function dbToY(db) {
+  const t = (db - DISPLAY_MIN_DB) / (DISPLAY_MAX_DB - DISPLAY_MIN_DB);
+  return CANVAS_H - Math.max(0, Math.min(1, t)) * CANVAS_H;
+}
+
+function drawSpectrum() {
+  const canvas = document.getElementById('spectrumCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+  ctx.strokeStyle = '#35373A';
+  ctx.fillStyle = '#92948F';
+  ctx.font = '11px "Space Grotesk", sans-serif';
+  ctx.lineWidth = 1;
+  const gridFreqs = [63, 125, 250, 500, 1000, 2000, 4000, 8000];
+  gridFreqs.forEach(f => {
+    if (f < MIN_FREQ || f > MAX_FREQ) return;
+    const x = freqToX(f);
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, CANVAS_H);
+    ctx.stroke();
+    const label = f >= 1000 ? (f / 1000) + 'k' : String(f);
+    const nearRightEdge = x > CANVAS_W - 30;
+    ctx.textAlign = nearRightEdge ? 'right' : 'left';
+    ctx.fillText(label, nearRightEdge ? x - 4 : x + 4, CANVAS_H - 6);
+  });
+  ctx.textAlign = 'left';
+
+  const barW = CANVAS_W / NUM_BUCKETS;
+
+  if (displayMode === 'bar') {
+    for (let i = 0; i < NUM_BUCKETS; i++) {
+      const x = i * barW;
+      const yLive = dbToY(liveDb[i]);
+      ctx.fillStyle = 'rgba(95,173,164,0.85)';
+      ctx.fillRect(x, yLive, Math.max(1, barW - 1), CANVAS_H - yLive);
+      const yPeak = dbToY(peakDb[i]);
+      ctx.fillStyle = '#E8A33D';
+      ctx.fillRect(x, yPeak - 2, Math.max(1, barW - 1), 2);
+    }
+  } else {
+    ctx.beginPath();
+    for (let i = 0; i < NUM_BUCKETS; i++) {
+      const x = i * barW + barW / 2;
+      const y = dbToY(liveDb[i]);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#5FADA4';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    for (let i = 0; i < NUM_BUCKETS; i++) {
+      const x = i * barW + barW / 2;
+      const y = dbToY(peakDb[i]);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#E8A33D';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  if (selectedFreq !== null) {
+    PARTIAL_RATIOS.forEach(r => {
+      const f = selectedFreq * r;
+      if (f < MIN_FREQ || f > MAX_FREQ) return;
+      const x = freqToX(f);
+      const isRoot = r === 1;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, CANVAS_H);
+      ctx.strokeStyle = isRoot ? '#ECE9E2' : 'rgba(146,148,143,0.5)';
+      ctx.lineWidth = isRoot ? 2 : 1;
+      ctx.stroke();
+    });
+
+    const rootX = freqToX(selectedFreq);
+    const note = freqToNote(selectedFreq, getA4());
+    const label = `${selectedFreq.toFixed(1)} Hz (${note.name})`;
+    ctx.font = '12px "Space Grotesk", sans-serif';
+    ctx.fillStyle = '#ECE9E2';
+    const nearRight = rootX > CANVAS_W - 140;
+    ctx.textAlign = nearRight ? 'right' : 'left';
+    ctx.fillText(label, nearRight ? rootX - 6 : rootX + 6, 16);
+    ctx.textAlign = 'left';
+  }
+}
+
+function updateAndDraw() {
+  const now = performance.now();
+  const dt = lastFrameTs === null ? UPDATE_INTERVAL_MS / 1000 : (now - lastFrameTs) / 1000;
+  lastFrameTs = now;
+
+  const freqData = new Float32Array(analyser.frequencyBinCount);
+  analyser.getFloatFrequencyData(freqData);
+
+  for (let i = 0; i < NUM_BUCKETS; i++) {
+    const [lo, hi] = bucketBinRanges[i];
+    let maxRaw = -Infinity;
+    for (let b = lo; b <= hi; b++) { if (freqData[b] > maxRaw) maxRaw = freqData[b]; }
+    if (maxRaw === -Infinity) maxRaw = DISPLAY_MIN_DB;
+    const corrected = maxRaw + calibOffset(bucketCenterFreq[i]);
+    liveDb[i] = corrected;
+    peakDb[i] = Math.max(corrected, peakDb[i] - DECAY_DB_PER_SEC * dt);
+  }
+
+  drawSpectrum();
+}
+
+function stopMic() {
+  if (micStream) {
+    micStream.getTracks().forEach(t => t.stop());
+    micStream = null;
+  }
+  if (audioCtx) {
+    audioCtx.close();
+    audioCtx = null;
+  }
+  analyser = null;
+  micSourceNode = null;
+  bucketBinRanges = null;
+  bucketCenterFreq = null;
+}
+
+document.getElementById('btnListen').addEventListener('click', async () => {
+  const btn = document.getElementById('btnListen');
+  if (!isListening) {
+    const ok = await ensureMic();
+    if (!ok) return;
+    isListening = true;
+    btn.textContent = 'Stop listening';
+    btn.classList.add('active');
+    lastFrameTs = null;
+    updateAndDraw();
+    rafId = setInterval(updateAndDraw, UPDATE_INTERVAL_MS);
+  } else {
+    isListening = false;
+    btn.textContent = 'Start listening';
+    btn.classList.remove('active');
+    if (rafId) clearInterval(rafId);
+    stopMic();
+  }
+});
+
+window.addEventListener('pagehide', stopMic);
+window.addEventListener('beforeunload', stopMic);
+
+function canvasXFromEvent(evt) {
+  const canvas = document.getElementById('spectrumCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const xCss = evt.clientX - rect.left;
+  const xCanvas = (xCss / rect.width) * CANVAS_W;
+  return Math.max(0, Math.min(CANVAS_W, xCanvas));
+}
+
+function xToFreq(x) {
+  return MIN_FREQ * Math.pow(MAX_FREQ / MIN_FREQ, x / CANVAS_W);
+}
+
+function syncCalculatorToSelection(freq) {
+  document.getElementById('btnFreq').classList.add('active');
+  document.getElementById('btnNote').classList.remove('active');
+  document.getElementById('freqInputs').style.display = 'flex';
+  document.getElementById('noteInputs').style.display = 'none';
+  document.getElementById('freqInput').value = freq.toFixed(2);
+  render();
+}
+
+function updateSelectionFromEvent(evt) {
+  selectedFreq = xToFreq(canvasXFromEvent(evt));
+  drawSpectrum();
+  syncCalculatorToSelection(selectedFreq);
+}
+
+const spectrumCanvasEl = document.getElementById('spectrumCanvas');
+spectrumCanvasEl.addEventListener('pointerdown', evt => {
+  isDraggingSpectrum = true;
+  spectrumCanvasEl.setPointerCapture(evt.pointerId);
+  updateSelectionFromEvent(evt);
+});
+spectrumCanvasEl.addEventListener('pointermove', evt => {
+  if (!isDraggingSpectrum) return;
+  updateSelectionFromEvent(evt);
+});
+spectrumCanvasEl.addEventListener('pointerup', () => { isDraggingSpectrum = false; });
+spectrumCanvasEl.addEventListener('pointercancel', () => { isDraggingSpectrum = false; });
+
+document.getElementById('btnBarMode').addEventListener('click', () => {
+  displayMode = 'bar';
+  document.getElementById('btnBarMode').classList.add('active');
+  document.getElementById('btnLineMode').classList.remove('active');
+  drawSpectrum();
+});
+document.getElementById('btnLineMode').addEventListener('click', () => {
+  displayMode = 'line';
+  document.getElementById('btnLineMode').classList.add('active');
+  document.getElementById('btnBarMode').classList.remove('active');
+  drawSpectrum();
+});
+
+renderCalibSteps();
+drawSpectrum();
+
+</script>
+</body>
+</html>
